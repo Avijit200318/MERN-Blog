@@ -2,25 +2,26 @@ import { Alert, Button, Label, Spinner, TextInput } from 'flowbite-react'
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux';
-import { signInFailure,signInStart,signInSuccess } from '../redux/user/userSlice';
+import { signInFailure, signInStart, signInSuccess } from '../redux/user/userSlice';
+import OAuth from '../componenets/OAuth';
 
 export default function SignIn() {
 
   const [formData, setFormData] = useState({});
-  const {loading, error} = useSelector((state)=> state.user);
+  const { loading, error } = useSelector((state) => state.user);
   console.log(formData);
   const dispatch = useDispatch();
 
   const navigate = useNavigate();
   const handleChange = (e) => {
-    setFormData({...formData, [e.target.id]: e.target.value.trim()});
+    setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
   }
   console.log(formData);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     dispatch(signInStart());
-    try{
+    try {
       const res = await fetch("/api/auth/signIn", {
         method: 'POST',
         headers: {
@@ -30,13 +31,13 @@ export default function SignIn() {
       });
 
       const data = await res.json();
-      if(data.success === false){
+      if (data.success === false) {
         dispatch(signInFailure(data.message));
         return;
       }
       dispatch(signInSuccess(data));
       navigate("/");
-    }catch(error){
+    } catch (error) {
       dispatch(signInFailure(error.message));
       setError(error.message);
     }
@@ -64,16 +65,17 @@ export default function SignIn() {
               <Label value='Your Password' />
               <TextInput placeholder='Password' type='password' id='password' onChange={handleChange} required />
             </div>
-            <Button gradientDuoTone="purpleToPink" type='submit' className='' disabled={loading}>{loading ? 
-            <>
-            <Spinner size='sm' />
-            <span className="pl-3">Loading...</span>
-            </>
-            : 'Sign In'}</Button>
+            <Button gradientDuoTone="purpleToPink" type='submit' className='' disabled={loading}>{loading ?
+              <>
+                <Spinner size='sm' />
+                <span className="pl-3">Loading...</span>
+              </>
+              : 'Sign In'}</Button>
+            <OAuth />
           </form>
           <div className="flex gap-2 text-sm mt-5">
             <span>Don't have an account?</span>
-            <Link to='/sign-in' className='text-blue-500'>Sign Up</Link>
+            <Link to='/sign-up' className='text-blue-500'>Sign Up</Link>
           </div>
           {error && (
             <Alert className='mt-5' color='failure'>{error}</Alert>
