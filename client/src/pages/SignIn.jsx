@@ -1,9 +1,85 @@
-import React from 'react'
+import { Alert, Button, Label, Spinner, TextInput } from 'flowbite-react'
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useSelector, useDispatch } from 'react-redux';
+import { signInFailure,signInStart,signInSuccess } from '../redux/user/userSlice';
 
 export default function SignIn() {
+
+  const [formData, setFormData] = useState({});
+  const {loading, error} = useSelector((state)=> state.user);
+  console.log(formData);
+  const dispatch = useDispatch();
+
+  const navigate = useNavigate();
+  const handleChange = (e) => {
+    setFormData({...formData, [e.target.id]: e.target.value.trim()});
+  }
+  console.log(formData);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    dispatch(signInStart());
+    try{
+      const res = await fetch("/api/auth/signIn", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if(data.success === false){
+        dispatch(signInFailure(data.message));
+        return;
+      }
+      dispatch(signInSuccess(data));
+      navigate("/");
+    }catch(error){
+      dispatch(signInFailure(error.message));
+      setError(error.message);
+    }
+  }
+
   return (
-    <div>
-      this is the sign in page
+    <div className='min-h-screen mt-20'>
+      <div className="flex p-3 max-w-3xl mx-auto flex-col md:flex-row md:items-center gap-5">
+        <div className="flex-1">
+          <Link to='/' className='font-bold dark:text-white text-3xl'>
+            <span className="px-2 py-1 rounded-lg bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white">Avijit's</span>
+            Blog
+          </Link>
+          <p className="text-sm mt-5">
+            This is a demo project. You can sign in with your email and password or with Google.
+          </p>
+        </div>
+        <div className="flex-1">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <Label value='Your Email' />
+              <TextInput placeholder='Email' type='email' id='email' onChange={handleChange} required />
+            </div>
+            <div>
+              <Label value='Your Password' />
+              <TextInput placeholder='Password' type='password' id='password' onChange={handleChange} required />
+            </div>
+            <Button gradientDuoTone="purpleToPink" type='submit' className='' disabled={loading}>{loading ? 
+            <>
+            <Spinner size='sm' />
+            <span className="pl-3">Loading...</span>
+            </>
+            : 'Sign In'}</Button>
+          </form>
+          <div className="flex gap-2 text-sm mt-5">
+            <span>Don't have an account?</span>
+            <Link to='/sign-in' className='text-blue-500'>Sign Up</Link>
+          </div>
+          {error && (
+            <Alert className='mt-5' color='failure'>{error}</Alert>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
